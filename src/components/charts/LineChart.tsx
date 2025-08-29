@@ -1,0 +1,72 @@
+import React, { useEffect, useRef } from 'react';
+import * as echarts from 'echarts';
+
+interface LineChartProps {
+  title?: string;
+  data: {
+    xAxis: string[];
+    series: {
+      name: string;
+      data: number[];
+    }[];
+  };
+}
+
+const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data}) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (chartRef.current) {
+      // 初始化 ECharts 实例
+      const myChart = echarts.init(chartRef.current);
+      
+      // 配置图表选项
+      const option = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: data.xAxis
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: data.series.map((item) => ({
+          name: item.name,
+          type: 'line',
+          data: item.data,
+          smooth: true
+        })),
+        legend: {
+          data: data.series.map((item) => item.name)
+        }
+      };
+      
+      // 设置图表配置
+      myChart.setOption(option);
+      
+      // 组件卸载时销毁图表实例
+      return () => {
+        myChart.dispose();
+      };
+    }
+  }, [title, data]);
+
+  return (
+    <div>
+      <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 'normal' }}>
+        {title}
+      </h3>
+      <div
+        ref={chartRef}
+        style={{
+          width: '100%',
+          height: '400px',
+        }}
+      />
+    </div>
+  );
+};
+
+export default LineChart;

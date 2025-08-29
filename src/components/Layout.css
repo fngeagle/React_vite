@@ -1,0 +1,163 @@
+/* 主布局容器 */
+.main-layout {
+  min-height: 100vh;
+}
+
+/* 移除按钮焦点边框 */
+.ant-btn:focus,
+.ant-btn:focus-visible {
+  outline: none;
+}
+
+
+/* 侧边栏样式 */
+.sidebar {
+  overflow: auto;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+}
+
+/* Logo区域 */
+.logo {
+  height: 32px;
+  margin: 16px;
+  text-align: center;
+  color: #1890ff;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 32px;
+}
+
+/* 侧边栏菜单 */
+.sidebar-menu {
+  background: #fff !important;
+  border: none !important;
+}
+
+.sidebar-menu .ant-menu-item {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  height: 50px;
+  line-height: 50px;
+}
+
+.sidebar-menu .ant-menu-item:hover {
+  background-color: #f0f7ff !important;
+}
+
+.sidebar-menu .ant-menu-item-selected {
+  background-color: #e6f4ff !important;
+  border-right: 3px solid #1890ff !important; /* 选中时的右边框 */
+}
+
+/* 折叠触发器 */
+.ant-layout-sider-trigger {
+  background: #fff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 主内容区域 */
+.main-content {
+  margin-left: 200px;
+  transition: margin-left 0.2s;
+  min-height: 100vh;
+}
+
+.main-content-collapsed {
+  margin-left: 80px;
+}
+
+/* 顶部头部 */
+.top-header {
+  background: #fff;
+  padding: 0 16px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 200px;
+  transition: left 0.2s;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.main-content-collapsed .top-header {
+  left: 80px;
+}
+
+/* 头部标题 */
+.header-title {
+  margin: 0;
+  color: #1890ff;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* 头部右侧工具栏 */
+.header-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 右对齐 */
+  flex: 1;
+}
+
+/* 搜索框容器 */
+.search-container {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 居中对齐 */
+  flex: 1;
+  margin: 0 20px;
+}
+
+/* 内容区域 */
+.content-wrapper {
+  margin-top: 64px;
+  overflow: initial;
+  height: calc(100vh - 64px);
+  width: calc(100vw - 200px);
+}
+
+/* 内容主体 */
+.content {
+  padding: 24px;
+  background: #fff;
+  height: 100%;
+  width: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .main-content-collapsed {
+    margin-left: 0;
+  }
+  
+  .top-header {
+    left: 0;
+  }
+  
+  .main-content-collapsed .top-header {
+    left: 0;
+  }
+  
+  .content-wrapper {
+    margin: 64px 16px 0; /* 移动端调整边距 */
+  }
+  
+  .search-container {
+    margin: 0 10px;
+  }
+}
