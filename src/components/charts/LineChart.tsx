@@ -32,6 +32,13 @@ const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data}) => {
         yAxis: {
           type: 'value'
         },
+        dataZoom: [
+          {
+            type: 'inside',
+            start: 0,
+            end: 100
+          }
+        ],
         series: data.series.map((item) => ({
           name: item.name,
           type: 'line',
