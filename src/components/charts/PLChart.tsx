@@ -2,22 +2,35 @@ import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 
-interface LineChartProps {
+interface PLChartProps {
   title?: string;
-  data: {
-    xAxis: string[];
-    series: {
-      name: string;
-      data: number[];
-    }[];
-  };
+  xAxis_data: string[];
+  series_data: {
+    name: string;
+    data: number[];
+  }[];
+
   onChartReady?: (chartInstance: echarts.ECharts) => void;
 }
 
-const LineChart: React.FC<LineChartProps> = ({ title = '盈亏图', data, onChartReady }) => {
+const PLChart: React.FC<PLChartProps> = ({ title = '盈亏图', xAxis_data, series_data, onChartReady }) => {
   const option = {
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
+      formatter: (params: any) => {
+        let tooltipContent = '';
+        params.forEach((param: any) => {
+          // 显示时间在最上面，文字颜色为黑色
+          tooltipContent += `
+            <span style="color: black;">
+              时间: ${param.name}<br/>
+              ${param.seriesName}: ${param.value}
+            </span>
+            <br/>
+          `;
+        });
+        return tooltipContent;
+      }
     },
     grid: {
       // 设置图表边距
@@ -29,7 +42,7 @@ const LineChart: React.FC<LineChartProps> = ({ title = '盈亏图', data, onChar
     },
     xAxis: {
       type: 'category',
-      data: data.xAxis
+      data: xAxis_data
     },
     yAxis: {
       type: 'value'
@@ -41,14 +54,14 @@ const LineChart: React.FC<LineChartProps> = ({ title = '盈亏图', data, onChar
         end: 100
       }
     ],
-    series: data.series.map((item) => ({
+    series: series_data.map((item) => ({
       name: item.name,
       type: 'line',
       data: item.data,
       smooth: true
     })),
     legend: {
-      data: data.series.map((item) => item.name)
+      data: series_data.map((item) => item.name)
     }
   };
 
@@ -69,4 +82,4 @@ const LineChart: React.FC<LineChartProps> = ({ title = '盈亏图', data, onChar
   );
 };
 
-export default LineChart;
+export default PLChart;

@@ -4,22 +4,37 @@ import * as echarts from 'echarts';
 
 interface BarChartProps {
   title?: string;
-  data: {
-    xAxis: string[];
-    series: {
-      predictionStrength: number;
-      isCorrect: boolean;
-    }[];
-  };
+  xAxis_data: string[];
+  series_data: {
+    predictionStrength: number;
+    isCorrect: boolean;
+  }[];
   onChartReady?: (chartInstance: echarts.ECharts) => void;
 }
 
-const BarChart: React.FC<BarChartProps> = ({ title='预测图', data, onChartReady }) => {
+const BarChart: React.FC<BarChartProps> = ({ title='预测图', xAxis_data, series_data, onChartReady }) => {
   const option = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
         type: 'shadow'
+      },
+      formatter: (params: any) => {
+        let tooltipContent = '';
+        params.forEach((param: any) => {
+          // 显示时间在最上面，文字颜色为黑色
+          const item = series_data[param.dataIndex];
+          const correctness = item.isCorrect ? '正确' : '错误';
+          
+          tooltipContent += `
+            <span style="color: black;">
+              时间: ${param.name}<br/>
+              预测强度: ${param.value}<br/>
+              预测结果: ${correctness}
+            </span>
+          `;
+        });
+        return tooltipContent;
       }
     },
     grid: {
@@ -31,7 +46,7 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图', data, onChartRea
     },
     xAxis: {
       type: 'category',
-      data: data.xAxis
+      data: xAxis_data
     },
     yAxis: {
       type: 'value',
@@ -50,7 +65,7 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图', data, onChartRea
         type: 'bar',
         barWidth: '60%',  // 调整柱子宽度
         barGap: '0%',     // 柱子之间的间距
-        data: data.series.map(item => ({
+        data: series_data.map(item => ({
           value: item.predictionStrength,
           itemStyle: {
             color: item.isCorrect ? 'green' : 'red'

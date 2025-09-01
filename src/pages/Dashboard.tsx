@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Card, Row, Col } from 'antd';
 import * as echarts from 'echarts';
-import LineChart from '../components/charts/PriceChart';
+import PriceChart from '../components/charts/PriceChart';
 import BarChart from '../components/charts/BarChart';
 import PLChart from '../components/charts/PLChart';
 import TimeRangeSelector from '../components/timeRangeSelector/TimeRangeSelector';
@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
   };
 
   // 期货时间序列数据示例（包含午间休市时间）
-  const timeSeriesData = {
+  const SeriesData = {
     xAxis: [
       '2025-08-29 11:25',
       '2025-08-29 11:26',
@@ -66,32 +66,20 @@ const Dashboard: React.FC = () => {
       '2025-08-29 13:04',
       '2025-08-29 13:05'
     ],
-    series: [
+    price_series: [
       {
         name: '期货价格',
         data: [5200, 5210, 5205, 5215, 5220, 5225, 5230, 5235, 5240, 5245, 5250, 5255]
       }
-    ]
-  };
-
-  // 预测强度数据示例
-  const predictionData = {
-    xAxis: [
-      '2025-08-29 11:25',
-      '2025-08-29 11:26',
-      '2025-08-29 11:27',
-      '2025-08-29 11:28',
-      '2025-08-29 11:29',
-      '2025-08-29 11:30',
-      // 午间休市时间（11:30-13:00）无数据，但保持等间距显示
-      '2025-08-29 13:00',
-      '2025-08-29 13:01',
-      '2025-08-29 13:02',
-      '2025-08-29 13:03',
-      '2025-08-29 13:04',
-      '2025-08-29 13:05'
     ],
-    series: [
+    // 交易点数据
+    tradePoints: [
+      { id: '1', type: 'buy' as const, price: 5200, isClose: false, timestamp: '2025-08-29 11:25' },
+      { id: '1', type: 'sell' as const, price: 5210, isClose: false, timestamp: '2025-08-29 11:26' },
+      { id: '3', type: 'buy' as const, price: 5205, isClose: true, timestamp: '2025-08-29 11:27' },
+      { id: '4', type: 'sell' as const, price: 5215, isClose: true, timestamp: '2025-08-29 11:28' }
+    ],
+    pred_series: [
       { predictionStrength: 3.5, isCorrect: true },
       { predictionStrength: 0, isCorrect: false },
       { predictionStrength: 4.8, isCorrect: true },
@@ -104,27 +92,8 @@ const Dashboard: React.FC = () => {
       { predictionStrength: -1.2, isCorrect: false },
       { predictionStrength: 0.5, isCorrect: true },
       { predictionStrength: -3.7, isCorrect: false }
-    ]
-  };
-
-  // 盈亏模拟数据
-  const PLSeriesData = {
-    xAxis: [
-      '2025-08-29 11:25',
-      '2025-08-29 11:26',
-      '2025-08-29 11:27',
-      '2025-08-29 11:28',
-      '2025-08-29 11:29',
-      '2025-08-29 11:30',
-      // 午间休市时间（11:30-13:00）无数据，但保持等间距显示
-      '2025-08-29 13:00',
-      '2025-08-29 13:01',
-      '2025-08-29 13:02',
-      '2025-08-29 13:03',
-      '2025-08-29 13:04',
-      '2025-08-29 13:05'
     ],
-    series: [
+    pl_series: [
       {
         name: '盈亏',
         data: [253, -233, 145, 44, 0, 456, 778, 132, -36, -500, -4, 369]
@@ -141,9 +110,11 @@ const Dashboard: React.FC = () => {
       <Row>
         <Col span={24}>
           <Card>
-            <LineChart
+            <PriceChart
               title="期货交易数据趋势"
-              data={timeSeriesData}
+              xAxis_data = {SeriesData.xAxis}
+              series_data = {SeriesData.price_series}
+              tradePoints = {SeriesData.tradePoints}
               onChartReady={(chart) => onChartReady(chart, 0)}
             />
           </Card>
@@ -155,7 +126,8 @@ const Dashboard: React.FC = () => {
           <Card>
             <BarChart
               title="预测图"
-              data={predictionData}
+              xAxis_data = {SeriesData.xAxis}
+              series_data = {SeriesData.pred_series}
               onChartReady={(chart) => onChartReady(chart, 1)}
             />
           </Card>
@@ -167,7 +139,8 @@ const Dashboard: React.FC = () => {
           <Card>
             <PLChart
               title="盈亏图"
-              data={PLSeriesData}
+              xAxis_data = {SeriesData.xAxis}
+              series_data = {SeriesData.pl_series}
               onChartReady={(chart) => onChartReady(chart, 2)}
             />
           </Card>
