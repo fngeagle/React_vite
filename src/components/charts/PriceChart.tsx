@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts';
 
 interface LineChartProps {
   title?: string;
@@ -10,9 +11,10 @@ interface LineChartProps {
       data: number[];
     }[];
   };
+  onChartReady?: (chartInstance: echarts.ECharts) => void;
 }
 
-const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data }) => {
+const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data, onChartReady }) => {
   const option = {
     tooltip: {
       trigger: 'axis'
@@ -62,6 +64,7 @@ const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data }) => {
           width: '100%',
           height: '200px',
         }}
+        onChartReady={onChartReady}
       />
     </div>
   );

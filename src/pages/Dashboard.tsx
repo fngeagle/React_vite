@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Card, Row, Col } from 'antd';
+import * as echarts from 'echarts';
 import LineChart from '../components/charts/PriceChart';
 import BarChart from '../components/charts/BarChart';
 import PLChart from '../components/charts/PLChart';
@@ -14,6 +15,9 @@ interface TimeRange {
 }
 
 const Dashboard: React.FC = () => {
+  // 图表实例引用
+  const chartRefs = useRef<echarts.ECharts[]>([]);
+
   // 处理查询按钮点击
   const handleSearch = (priceRange: TimeRange, plRange: TimeRange) => {
     // 格式化时间区间
@@ -33,6 +37,16 @@ const Dashboard: React.FC = () => {
       start: plStart.format('YYYY-MM-DD HH:mm'),
       end: plEnd.format('YYYY-MM-DD HH:mm')
     });
+  };
+
+  // 图表加载完成后的回调
+  const onChartReady = (chartInstance: echarts.ECharts, index: number) => {
+    chartRefs.current[index] = chartInstance;
+    
+    // 当所有图表都加载完成后，连接它们
+    if (chartRefs.current.length === 3 && chartRefs.current.every(chart => chart !== undefined)) {
+      echarts.connect([chartRefs.current[0], chartRefs.current[1], chartRefs.current[2]]);
+    }
   };
 
   // 期货时间序列数据示例（包含午间休市时间）
@@ -130,6 +144,7 @@ const Dashboard: React.FC = () => {
             <LineChart
               title="期货交易数据趋势"
               data={timeSeriesData}
+              onChartReady={(chart) => onChartReady(chart, 0)}
             />
           </Card>
         </Col>
@@ -141,6 +156,7 @@ const Dashboard: React.FC = () => {
             <BarChart
               title="预测图"
               data={predictionData}
+              onChartReady={(chart) => onChartReady(chart, 1)}
             />
           </Card>
         </Col>
@@ -152,6 +168,7 @@ const Dashboard: React.FC = () => {
             <PLChart
               title="盈亏图"
               data={PLSeriesData}
+              onChartReady={(chart) => onChartReady(chart, 2)}
             />
           </Card>
         </Col>

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts';
 
 interface BarChartProps {
   title?: string;
@@ -10,9 +11,10 @@ interface BarChartProps {
       isCorrect: boolean;
     }[];
   };
+  onChartReady?: (chartInstance: echarts.ECharts) => void;
 }
 
-const BarChart: React.FC<BarChartProps> = ({ title='预测图',data}) => {
+const BarChart: React.FC<BarChartProps> = ({ title='预测图', data, onChartReady }) => {
   const option = {
     tooltip: {
       trigger: 'axis',
@@ -23,7 +25,7 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图',data}) => {
     grid: {
       top: 30,
       bottom: 0,
-      left: 0,
+      left: 20,  //调整表内部间距，以和折线图对其
       right: 0,
       containLabel: true
     },
@@ -46,6 +48,8 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图',data}) => {
     series: [
       {
         type: 'bar',
+        barWidth: '60%',  // 调整柱子宽度
+        barGap: '0%',     // 柱子之间的间距
         data: data.series.map(item => ({
           value: item.predictionStrength,
           itemStyle: {
@@ -67,6 +71,7 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图',data}) => {
           width: '100%',
           height: '150px',
         }}
+        onChartReady={onChartReady}
       />
     </div>
   );
