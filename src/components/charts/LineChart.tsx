@@ -25,6 +25,14 @@ const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data}) => {
         tooltip: {
           trigger: 'axis'
         },
+        grid: {
+          // 设置图表边距
+          top: 30,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          containLabel: true
+        },
         xAxis: {
           type: 'category',
           data: data.xAxis
@@ -69,7 +77,7 @@ const LineChart: React.FC<LineChartProps> = ({ title = '折线图', data}) => {
         ref={chartRef}
         style={{
           width: '100%',
-          height: '400px',
+          height: '300px',
         }}
       />
     </div>
