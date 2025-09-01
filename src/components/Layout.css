@@ -18,8 +18,8 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background: #fff;
-  border-right: 1px solid #f0f0f0;
+  background: #001529; /* 深蓝灰色背景 */
+  border-right: none;
 }
 
 /* Logo区域 */
@@ -27,7 +27,7 @@
   height: 32px;
   margin: 16px;
   text-align: center;
-  color: #1890ff;
+  color: #fff; /* 白色文字 */
   font-size: 18px;
   font-weight: bold;
   line-height: 32px;
@@ -35,7 +35,7 @@
 
 /* 侧边栏菜单 */
 .sidebar-menu {
-  background: #fff !important;
+  background: #001529 !important; /* 与侧边栏背景一致 */
   border: none !important;
 }
 
@@ -44,22 +44,25 @@
   border-radius: 0 !important;
   height: 50px;
   line-height: 50px;
+  color: rgba(255, 255, 255, 0.65); /* 浅灰色文字 */
 }
 
 .sidebar-menu .ant-menu-item:hover {
-  background-color: #f0f7ff !important;
+  background-color: #1890ff !important; /* 悬停时使用主题蓝色 */
+  color: #fff !important;
 }
 
 .sidebar-menu .ant-menu-item-selected {
-  background-color: #e6f4ff !important;
-  border-right: 3px solid #1890ff !important; /* 选中时的右边框 */
+  background-color: #1890ff !important; /* 选中时使用主题蓝色 */
+  color: #fff !important;
+  border-right: none !important; /* 移除右边框 */
 }
 
 /* 折叠触发器 */
 .ant-layout-sider-trigger {
-  background: #fff !important;
-  color: rgba(0, 0, 0, 0.85) !important;
-  border-top: 1px solid #f0f0f0;
+  background: #002140 !important; /* 深一些的蓝色 */
+  color: rgba(255, 255, 255, 0.65) !important; /* 浅灰色文字 */
+  border-top: 1px solid #003366; /* 深蓝边框 */
 }
 
 /* 主内容区域 */
@@ -73,64 +76,21 @@
   margin-left: 80px;
 }
 
-/* 顶部头部 */
-.top-header {
-  background: #fff;
-  padding: 0 16px;
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 200px;
-  transition: left 0.2s;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.main-content-collapsed .top-header {
+.main-content-collapsed {
   left: 80px;
-}
-
-/* 头部标题 */
-.header-title {
-  margin: 0;
-  color: #1890ff;
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
-/* 头部右侧工具栏 */
-.header-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end; /* 右对齐 */
-  flex: 1;
-}
-
-/* 搜索框容器 */
-.search-container {
-  display: flex;
-  align-items: center;
-  justify-content: center; /* 居中对齐 */
-  flex: 1;
-  margin: 0 20px;
 }
 
 /* 内容区域 */
 .content-wrapper {
-  margin-top: 64px;
   overflow: initial;
-  height: calc(100vh - 64px);
+  height: 100vh;
   width: calc(100vw - 200px);
 }
 
 /* 内容主体 */
 .content {
   padding: 24px;
-  background: #fff;
+  background: #f0f2f5; /* 浅灰色背景 */
   height: 100%;
   width: 100%;
 }
@@ -145,19 +105,7 @@
     margin-left: 0;
   }
   
-  .top-header {
-    left: 0;
-  }
-  
-  .main-content-collapsed .top-header {
-    left: 0;
-  }
-  
   .content-wrapper {
     margin: 64px 16px 0; /* 移动端调整边距 */
-  }
-  
-  .search-container {
-    margin: 0 10px;
   }
 }
