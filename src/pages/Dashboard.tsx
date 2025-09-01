@@ -1,35 +1,27 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, DatePicker, TimePicker, Button} from 'antd';
+import React from 'react';
+import { Card, Row, Col } from 'antd';
 import LineChart from '../components/charts/PriceChart';
 import BarChart from '../components/charts/BarChart';
 import PLChart from '../components/charts/PLChart';
-import dayjs, { Dayjs } from 'dayjs';
+import TimeRangeSelector from '../components/timeRangeSelector/TimeRangeSelector';
+import { Dayjs } from 'dayjs';
+
+interface TimeRange {
+  startDate: Dayjs;
+  endDate: Dayjs;
+  startTime: Dayjs;
+  endTime: Dayjs;
+}
 
 const Dashboard: React.FC = () => {
-  // 时间区间状态
-  const [priceTimeRange, setPriceTimeRange] = useState({
-    startDate: dayjs().startOf('day'),
-    endDate: dayjs().endOf('day'),
-    startTime: dayjs().startOf('day').hour(0).minute(0),
-    endTime: dayjs().startOf('day').hour(23).minute(59)
-  });
-
-  // 盈亏计算时间区间状态
-  const [plTimeRange, setPlTimeRange] = useState({
-    startDate: dayjs().subtract(7, 'day').startOf('day'),
-    endDate: dayjs().endOf('day'),
-    startTime: dayjs().startOf('day').hour(0).minute(0),
-    endTime: dayjs().startOf('day').hour(23).minute(59)
-  });
-  
   // 处理查询按钮点击
-  const handleSearch = () => {
+  const handleSearch = (priceRange: TimeRange, plRange: TimeRange) => {
     // 格式化时间区间
-    const priceStart = priceTimeRange.startDate.hour(priceTimeRange.startTime.hour()).minute(priceTimeRange.startTime.minute());
-    const priceEnd = priceTimeRange.endDate.hour(priceTimeRange.endTime.hour()).minute(priceTimeRange.endTime.minute());
+    const priceStart = priceRange.startDate.hour(priceRange.startTime.hour()).minute(priceRange.startTime.minute());
+    const priceEnd = priceRange.endDate.hour(priceRange.endTime.hour()).minute(priceRange.endTime.minute());
     
-    const plStart = plTimeRange.startDate.hour(plTimeRange.startTime.hour()).minute(plTimeRange.startTime.minute());
-    const plEnd = plTimeRange.endDate.hour(plTimeRange.endTime.hour()).minute(plTimeRange.endTime.minute());
+    const plStart = plRange.startDate.hour(plRange.startTime.hour()).minute(plRange.startTime.minute());
+    const plEnd = plRange.endDate.hour(plRange.endTime.hour()).minute(plRange.endTime.minute());
     
     // 输出到控制台进行测试
     console.log('价格图表时间区间:', {
@@ -129,64 +121,8 @@ const Dashboard: React.FC = () => {
   return (
     <div>
       {/* 时间区间选择器 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 24, padding: '0 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <span style={{ whiteSpace: 'nowrap' }}>价格区间:</span>
-          <DatePicker
-            value={priceTimeRange.startDate}
-            onChange={(date) => setPriceTimeRange({...priceTimeRange, startDate: date})}
-            style={{ width: 140 }}
-          />
-          <TimePicker
-            value={priceTimeRange.startTime}
-            onChange={(time) => setPriceTimeRange({...priceTimeRange, startTime: time})}
-            format="HH:mm"
-            style={{ width: 100 }}
-          />
-          <span style={{ whiteSpace: 'nowrap' }}>-</span>
-          <DatePicker
-            value={priceTimeRange.endDate}
-            onChange={(date) => setPriceTimeRange({...priceTimeRange, endDate: date})}
-            style={{ width: 140 }}
-          />
-          <TimePicker
-            value={priceTimeRange.endTime}
-            onChange={(time) => setPriceTimeRange({...priceTimeRange, endTime: time})}
-            format="HH:mm"
-            style={{ width: 100 }}
-          />
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <span style={{ whiteSpace: 'nowrap' }}>盈亏区间:</span>
-          <DatePicker
-            value={plTimeRange.startDate}
-            onChange={(date) => setPlTimeRange({...plTimeRange, startDate: date})}
-            style={{ width: 140 }}
-          />
-          <TimePicker
-            value={plTimeRange.startTime}
-            onChange={(time) => setPlTimeRange({...plTimeRange, startTime: time})}
-            format="HH:mm"
-            style={{ width: 100 }}
-          />
-          <span style={{ whiteSpace: 'nowrap' }}>-</span>
-          <DatePicker
-            value={plTimeRange.endDate}
-            onChange={(date) => setPlTimeRange({...plTimeRange, endDate: date})}
-            style={{ width: 140 }}
-          />
-          <TimePicker
-            value={plTimeRange.endTime}
-            onChange={(time) => setPlTimeRange({...plTimeRange, endTime: time})}
-            format="HH:mm"
-            style={{ width: 100 }}
-          />
-        </div>
-        
-        <Button type="primary" onClick={handleSearch} style={{ flexShrink: 0 }}>查询</Button>
-      </div>
-
+      <TimeRangeSelector onSearch={handleSearch} />
+      
       {/* 时间序列折线图 */}
       <Row>
         <Col span={24}>
@@ -225,5 +161,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-
-
