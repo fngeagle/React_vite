@@ -25,12 +25,16 @@
 /* Logo区域 */
 .logo {
   height: 32px;
-  margin: 16px;
   text-align: center;
   color: #fff; /* 白色文字 */
   font-size: 18px;
   font-weight: bold;
   line-height: 32px;
+}
+
+.logo_header{
+  padding: 16px;
+  border-bottom: 1px solid #013981;
 }
 
 /* 侧边栏菜单 */
@@ -40,7 +44,7 @@
 }
 
 .sidebar-menu .ant-menu-item {
-  margin: 0 !important;
+  margin: 1px !important;
   border-radius: 0 !important;
   height: 50px;
   line-height: 50px;

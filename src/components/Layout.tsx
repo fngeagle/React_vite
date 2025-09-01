@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { Layout, Menu} from 'antd';
+import { Layout, Menu } from 'antd';
 import {
-  DesktopOutlined,
   PieChartOutlined,
-  FileOutlined,
-  TeamOutlined,
-  UserOutlined,
+  DesktopOutlined
 } from '@ant-design/icons';
 import './Layout.css';
 
@@ -30,18 +27,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onCollapse={toggleCollapsed}
         className="sidebar"
       >
-        <div className="logo">
-          {collapsed ? 'MS' : '管理系统'}
+        <div className="logo_header">
+          <div className="logo">
+            {collapsed ? 'MS' : '期货管理系统'}
+          </div>
         </div>
         <Menu
           defaultSelectedKeys={['1']}
           mode="inline"
           className="sidebar-menu"
         >
-          <Menu.Item key="1" icon={<PieChartOutlined />}>
+          <Menu.Item key="1" icon={<DesktopOutlined />}>
+            期货管理
+          </Menu.Item>
+          <Menu.Item key="2" icon={<PieChartOutlined />}>
             Dashboard
           </Menu.Item>
-          <Menu.Item key="2" icon={<DesktopOutlined />}>
+          {/* <Menu.Item key="2" icon={<DesktopOutlined />}>
             数据分析
           </Menu.Item>
           <Menu.Item key="3" icon={<UserOutlined />}>
@@ -52,7 +54,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Menu.Item>
           <Menu.Item key="5" icon={<FileOutlined />}>
             文件管理
-          </Menu.Item>
+          </Menu.Item> */}
         </Menu>
       </Sider>
       <Layout
