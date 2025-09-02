@@ -94,13 +94,10 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
         const pairedPointIndex = processedTradePoints.findIndex((p, index) => 
           p && p.name === point.name && index !== params.dataIndex
         );
-        console.log('配对点索引:', pairedPointIndex);
-        
         if (pairedPointIndex !== -1) {
           // 使用保存的图表实例引用
           const chartInstance = chartInstanceRef.current;
           if (chartInstance) {
-            console.log('触发跳转到配对点:', pairedPointIndex);
             // 跳转到配对的交易点
             chartInstance.dispatchAction({
               type: 'showTip',

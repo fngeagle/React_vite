@@ -22,17 +22,32 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图', xAxis_data, seri
       formatter: (params: any) => {
         let tooltipContent = '';
         params.forEach((param: any) => {
+          // 添加检查确保param存在且有必要的属性
+          if (!param) return;
+          
           // 显示时间在最上面，文字颜色为黑色
           const item = series_data[param.dataIndex];
-          const correctness = item.isCorrect ? '正确' : '错误';
+          // 添加检查确保item存在
+          if (!item) return;
           
-          tooltipContent += `
-            <span style="color: black;">
-              时间: ${param.name}<br/>
-              预测强度: ${param.value}<br/>
-              预测结果: ${correctness}
-            </span>
-          `;
+          // 当预测强度为0时不显示预测结果
+          if (param.value === 0) {
+            tooltipContent += `
+              <span style="color: black;">
+                时间: ${param.name || 'N/A'}<br/>
+                无预测
+              </span>
+            `;
+          } else {
+            const correctness = item.isCorrect ? '正确' : '错误';
+            tooltipContent += `
+              <span style="color: black;">
+                时间: ${param.name || 'N/A'}<br/>
+                预测强度: ${param.value}<br/>
+                预测结果: ${correctness}
+              </span>
+            `;
+          }
         });
         return tooltipContent;
       }

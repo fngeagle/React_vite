@@ -4,6 +4,7 @@ import {
   PieChartOutlined,
   DesktopOutlined
 } from '@ant-design/icons';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Layout.css';
 
 const { Content, Sider } = Layout;
@@ -14,9 +15,24 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
+  };
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    switch (key) {
+      case '1':
+        navigate('/');
+        break;
+      case '2':
+        navigate('/Dashboard');
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -33,9 +49,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </div>
         <Menu
-          defaultSelectedKeys={['1']}
+          selectedKeys={[location.pathname === '/Dashboard' ? '2' : '1']}
           mode="inline"
           className="sidebar-menu"
+          onClick={handleMenuClick}
         >
           <Menu.Item key="1" icon={<DesktopOutlined />}>
             期货管理
