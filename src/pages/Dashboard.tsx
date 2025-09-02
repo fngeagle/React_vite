@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
   const chartRefs = useRef<echarts.ECharts[]>([]);
 
   // 处理查询按钮点击
-  const handleSearch = (priceRange: TimeRange, plRange: TimeRange) => {
+  const handleSearch = (priceRange: TimeRange, plRange: TimeRange, selectedFuture: any) => {
     // 格式化时间区间
     const priceStart = priceRange.startDate.hour(priceRange.startTime.hour()).minute(priceRange.startTime.minute());
     const priceEnd = priceRange.endDate.hour(priceRange.endTime.hour()).minute(priceRange.endTime.minute());
@@ -37,6 +37,8 @@ const Dashboard: React.FC = () => {
       start: plStart.format('YYYY-MM-DD HH:mm'),
       end: plEnd.format('YYYY-MM-DD HH:mm')
     });
+    
+    console.log('选中的期货:', selectedFuture);
   };
 
   // 图表加载完成后的回调
@@ -104,7 +106,7 @@ const Dashboard: React.FC = () => {
   return (
     <div>
       {/* 时间区间选择器 */}
-      <TimeRangeSelector onSearch={handleSearch} />
+      <TimeRangeSelector onSearch={(priceRange, plRange, selectedFuture) => handleSearch(priceRange, plRange, selectedFuture)} />
       
       {/* 时间序列折线图 */}
       <Row>

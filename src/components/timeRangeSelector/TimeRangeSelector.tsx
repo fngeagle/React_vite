@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { DatePicker, TimePicker, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { DatePicker, TimePicker, Button, Select } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import { getAllFutures } from '../../services/futuresService';
+import type { FutureItem } from '../../services/futuresService';
+
+const { Option } = Select;
 
 interface TimeRange {
   startDate: Dayjs;
@@ -10,7 +14,7 @@ interface TimeRange {
 }
 
 interface TimeRangeSelectorProps {
-  onSearch: (priceRange: TimeRange, plRange: TimeRange) => void;
+  onSearch: (priceRange: TimeRange, plRange: TimeRange, selectedFuture: FutureItem | null) => void;
 }
 
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({ onSearch }) => {
@@ -30,13 +34,60 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({ onSearch }) => {
     endTime: dayjs().startOf('day').hour(23).minute(59)
   });
 
+  // 期货选择器状态
+  const [futures, setFutures] = useState<FutureItem[]>([]);
+  const [selectedFutureId, setSelectedFutureId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // 获取期货数据
+  const fetchFutures = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllFutures();
+      setFutures(data);
+      // 默认选择第一个期货
+      if (data.length > 0) {
+        setSelectedFutureId(data[0].id);
+      }
+    } catch (error) {
+      console.error('获取期货数据失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 处理查询按钮点击
   const handleSearch = () => {
-    onSearch(priceTimeRange, plTimeRange);
+    // 根据选中的期货ID找到对应的期货对象
+    const selectedFuture = futures.find(future => future.id === selectedFutureId) || null;
+    onSearch(priceTimeRange, plTimeRange, selectedFuture);
   };
+
+  // 组件挂载时获取期货数据
+  useEffect(() => {
+    fetchFutures();
+  }, []);
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 24, padding: '0 16px' }}>
+      {/* 期货选择器 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <span style={{ whiteSpace: 'nowrap' }}>期货:</span>
+        <Select
+          value={selectedFutureId}
+          onChange={setSelectedFutureId}
+          loading={loading}
+          style={{ width: 200 }}
+          placeholder="请选择期货"
+        >
+          {futures.map(future => (
+            <Option key={future.id} value={future.id}>
+              {future.symbol}
+            </Option>
+          ))}
+        </Select>
+      </div>
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <span style={{ whiteSpace: 'nowrap' }}>价格区间:</span>
         <DatePicker
