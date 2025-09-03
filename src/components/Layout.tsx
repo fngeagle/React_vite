@@ -30,6 +30,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       case '2':
         navigate('/Dashboard');
         break;
+      case '3':
+        navigate('/WebSocketExample');
+        break;
       default:
         break;
     }
@@ -49,7 +52,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </div>
         <Menu
-          selectedKeys={[location.pathname === '/Dashboard' ? '2' : '1']}
+          selectedKeys={[location.pathname === '/Dashboard' ? '2' : location.pathname === '/WebSocketExample' ? '3' : '1']}
           mode="inline"
           className="sidebar-menu"
           onClick={handleMenuClick}
@@ -60,18 +63,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Menu.Item key="2" icon={<PieChartOutlined />}>
             Dashboard
           </Menu.Item>
-          {/* <Menu.Item key="2" icon={<DesktopOutlined />}>
-            数据分析
+          <Menu.Item key="3" icon={<DesktopOutlined />}>
+            WebSocket示例
           </Menu.Item>
-          <Menu.Item key="3" icon={<UserOutlined />}>
-            用户管理
-          </Menu.Item>
-          <Menu.Item key="4" icon={<TeamOutlined />}>
-            团队管理
-          </Menu.Item>
-          <Menu.Item key="5" icon={<FileOutlined />}>
-            文件管理
-          </Menu.Item> */}
         </Menu>
       </Sider>
       <Layout

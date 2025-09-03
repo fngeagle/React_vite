@@ -4,10 +4,22 @@ import * as echarts from 'echarts';
 
 interface TradePoint {
   id: string;
-  type: 'buy' | 'sell'; // 买多/买空
+  type: number; // 1和-1.1为buy，-1为sell
   price: number; // 买入价格
   isClose: boolean; // 是否是平仓
+  count: number;
   timestamp: string; // 时间刻度
+}
+
+interface PriceDataItem {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  amt: number;
+  pctChg: number;
+  oi: number;
 }
 
 interface PriceChartProps {
@@ -15,7 +27,7 @@ interface PriceChartProps {
   xAxis_data: string[];
   series_data: {
     name: string;
-    data: number[];
+    data: PriceDataItem[];
   }[];
   tradePoints?: TradePoint[]; // 新增的交易点数据
   onChartReady?: (chartInstance: echarts.ECharts) => void;
@@ -41,7 +53,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
       
       if (point.isClose) {
         // 平仓操作：颜色与开仓相反
-        if (point.type === 'buy') {
+        if (point.type === 1 || point.type === -1.1) {
           // 平多仓：绿色上三角
           symbol = 'triangle';
           symbolRotate = 0; // 上三角不需要旋转
@@ -54,7 +66,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
         }
       } else {
         // 开仓操作
-        if (point.type === 'buy') {
+        if (point.type === 1 || point.type === -1.1) {
           // 买多开仓：红色上三角
           symbol = 'triangle';
           symbolRotate = 0; // 上三角不需要旋转
@@ -76,7 +88,8 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
         itemStyle,
         // 为每个数据点存储额外信息，用于tooltip显示
         type: point.type,
-        isClose: point.isClose
+        isClose: point.isClose,
+        count: point.count
       };
     }).filter(point => point !== null);
   };
@@ -126,25 +139,31 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
             tooltipContent += `
               <span style="color: black;">
                 时间: ${param.name}<br/>
-                ${param.seriesName}: ${param.value}
+                开盘价: ${param.data.open}<br/>
+                收盘价: ${param.data.close}<br/>
+                成交量: ${param.data.volume}<br/>
+                成交额: ${param.data.amt}<br/>
+                涨跌幅: ${param.data.pctChg}%<br/>
+                持仓量: ${param.data.oi}
               </span>
-              <br/>
             `;
+
+            tooltipContent += '<br/>';
           } else {
             // 处理交易点的tooltip
             const point = processedTradePoints[param.dataIndex];
             if (point) {
               // 显示时间在最上面，文字颜色为黑色
-              const actionType = point.isClose ? (point.type === 'buy' ? '平多' : '平空') : (point.type === 'buy' ? '买多' : '买空');
+              const actionType = point.isClose ? (point.type === 1 || point.type === -1.1 ? '平多' : '平空') : (point.type === 1 || point.type === -1.1 ? '买多' : '买空');
               const actionNature = point.isClose ? '平仓' : '开仓';
               // 开仓用红色，平仓用绿色
               const actionColor = point.isClose ? 'green' : 'red';
               tooltipContent += `
                 <span style="color: black;">
-                  时间: ${point.value[0]}<br/>
                   类型: ${actionType}<br/>
                   价格: ${point.value[1]}<br/>
-                  <span style="color: ${actionColor};">操作: ${actionNature}</span>
+                  <span style="color: ${actionColor};">操作: ${actionNature}</span><br/>
+                  交易量：${point.count}<br/>
                 </span>
               `;
             }
@@ -177,13 +196,29 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
       }
     ],
     series: [
-      ...series_data.map((item) => ({
-        name: item.name,
-        type: 'line',
-        data: item.data,
-        smooth: true,
-        z: 1 // 设置较低的z值，使线条在下层
-      })),
+      ...series_data.map((item) => {
+        // 转换数据以包含所有需要的信息
+        const seriesData = item.data.map((d, index) => ({
+          name: xAxis_data[index],
+          value: d.close,
+          open: d.open,
+          high: d.high,
+          low: d.low,
+          close: d.close,
+          volume: d.volume,
+          amt: d.amt,
+          pctChg: d.pctChg,
+          oi: d.oi
+        }));
+        
+        return {
+          name: item.name,
+          type: 'line',
+          data: seriesData,
+          smooth: true,
+          z: 1 // 设置较低的z值，使线条在下层
+        };
+      }),
       {
         name: '交易点',
         type: 'scatter',

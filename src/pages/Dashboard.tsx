@@ -71,15 +71,28 @@ const Dashboard: React.FC = () => {
     price_series: [
       {
         name: '期货价格',
-        data: [5200, 5210, 5205, 5215, 5220, 5225, 5230, 5235, 5240, 5245, 5250, 5255]
+        data: [
+          { open: 5200, high: 5210, low: 5195, close: 5205, volume: 1000, amt: 5205000, pctChg: 0.1, oi: 5000 },
+          { open: 5210, high: 5220, low: 5205, close: 5215, volume: 1200, amt: 5215000, pctChg: 0.2, oi: 5100 },
+          { open: 5205, high: 5215, low: 5190, close: 5210, volume: 800, amt: 5210000, pctChg: -0.1, oi: 5050 },
+          { open: 5215, high: 5230, low: 5210, close: 5225, volume: 1500, amt: 5225000, pctChg: 0.3, oi: 5200 },
+          { open: 5220, high: 5235, low: 5215, close: 5230, volume: 1100, amt: 5230000, pctChg: 0.2, oi: 5250 },
+          { open: 5225, high: 5240, low: 5220, close: 5235, volume: 900, amt: 5235000, pctChg: 0.1, oi: 5300 },
+          { open: 5230, high: 5245, low: 5225, close: 5240, volume: 1300, amt: 5240000, pctChg: 0.2, oi: 5350 },
+          { open: 5235, high: 5250, low: 5230, close: 5245, volume: 1400, amt: 5245000, pctChg: 0.3, oi: 5400 },
+          { open: 5240, high: 5255, low: 5235, close: 5250, volume: 1600, amt: 5250000, pctChg: 0.2, oi: 5450 },
+          { open: 5245, high: 5260, low: 5240, close: 5255, volume: 1700, amt: 5255000, pctChg: 0.2, oi: 5500 },
+          { open: 5250, high: 5265, low: 5245, close: 5260, volume: 1800, amt: 5260000, pctChg: 0.2, oi: 5550 },
+          { open: 5255, high: 5270, low: 5250, close: 5265, volume: 1900, amt: 5265000, pctChg: 0.2, oi: 5600 }
+        ]
       }
     ],
     // 交易点数据
     tradePoints: [
-      { id: '1', type: 'buy' as const, price: 5200, isClose: false, timestamp: '2025-08-29 11:25' },
-      { id: '1', type: 'sell' as const, price: 5210, isClose: false, timestamp: '2025-08-29 11:26' },
-      { id: '3', type: 'buy' as const, price: 5205, isClose: true, timestamp: '2025-08-29 11:27' },
-      { id: '4', type: 'sell' as const, price: 5215, isClose: true, timestamp: '2025-08-29 11:28' }
+      { id: '1', type: 1 , price: 5200, isClose: false, count:1, timestamp: '2025-08-29 11:25' },
+      { id: '1', type: -1 , price: 5210, isClose: true, count:1, timestamp: '2025-08-29 11:26' },
+      { id: '3', type: 1 , price: 5205, isClose: true, count:1, timestamp: '2025-08-29 11:27' },
+      { id: '4', type: -1 , price: 5215, isClose: true, count:1, timestamp: '2025-08-29 11:28' }
     ],
     pred_series: [
       { predictionStrength: 3.5, isCorrect: true },
