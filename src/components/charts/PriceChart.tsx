@@ -4,11 +4,11 @@ import * as echarts from 'echarts';
 
 interface TradePoint {
   id: string;
-  type: number; // 1和-1.1为buy，-1为sell
+  type: number; // 1为buy，-1为sell
   price: number; // 买入价格
-  isClose: boolean; // 是否是平仓
   count: number;
   timestamp: string; // 时间刻度
+  strategy_type: number; // 0为结束单，-1为锁仓，1为开仓
 }
 
 interface PriceDataItem {
@@ -41,38 +41,33 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
   const processTradePoints = () => {
     if (!tradePoints || tradePoints.length === 0) return [];
     
-    return tradePoints.map(point => {
+    // 过滤掉count为0的交易点
+    const filteredTradePoints = tradePoints.filter(point => point.count !== 0);
+    
+    return filteredTradePoints.map(point => {
       // 检查时间戳是否在xAxis_data中
       const xAxisIndex = xAxis_data.indexOf(point.timestamp);
       if (xAxisIndex === -1) return null; // 如果时间戳不匹配，则不显示数据点
       
-      // 根据类型和是否平仓确定符号和颜色
+      // 根据类型和策略类型确定符号和颜色
       let symbol = 'triangle';
       let itemStyle = {};
       let symbolRotate = 0;
       
-      if (point.isClose) {
-        // 平仓操作：颜色与开仓相反
-        if (point.type === 1 || point.type === -1.1) {
-          // 平多仓：绿色上三角
-          symbol = 'triangle';
-          symbolRotate = 0; // 上三角不需要旋转
-          itemStyle = { color: 'green' };
-        } else {
-          // 平空仓：红色下三角
-          symbol = 'triangle';
-          symbolRotate = 180; // 下三角需要旋转180度
-          itemStyle = { color: 'red' };
-        }
+      // 如果strategy_type为0，则使用方框
+      if (point.strategy_type === 0) {
+        symbol = 'rect';
+        // 方框的颜色根据type确定
+        itemStyle = { color: point.type === 1 ? 'red' : 'green' };
       } else {
-        // 开仓操作
-        if (point.type === 1 || point.type === -1.1) {
-          // 买多开仓：红色上三角
+        // 根据type确定三角形的方向和颜色
+        if (point.type === 1) {
+          // 买多：红色上三角
           symbol = 'triangle';
           symbolRotate = 0; // 上三角不需要旋转
           itemStyle = { color: 'red' };
-        } else {
-          // 买空开仓：绿色下三角
+        } else if (point.type === -1) {
+          // 买空：绿色下三角
           symbol = 'triangle';
           symbolRotate = 180; // 下三角需要旋转180度
           itemStyle = { color: 'green' };
@@ -88,8 +83,8 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
         itemStyle,
         // 为每个数据点存储额外信息，用于tooltip显示
         type: point.type,
-        isClose: point.isClose,
-        count: point.count
+        count: point.count,
+        strategy_type: point.strategy_type
       };
     }).filter(point => point !== null);
   };
@@ -102,9 +97,10 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
     
     if (params.seriesName === '交易点') {
       const point = processedTradePoints[params.dataIndex];
+      console.log('点击事件触发:', point);
       if (point) {
-        // 查找具有相同id但不同类型/操作的配对交易点
-        const pairedPointIndex = processedTradePoints.findIndex((p, index) => 
+        // 查找具有相同id的配对交易点
+        const pairedPointIndex = processedTradePoints.findIndex((p, index) =>
           p && p.name === point.name && index !== params.dataIndex
         );
         if (pairedPointIndex !== -1) {
@@ -154,15 +150,25 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
             const point = processedTradePoints[param.dataIndex];
             if (point) {
               // 显示时间在最上面，文字颜色为黑色
-              const actionType = point.isClose ? (point.type === 1 || point.type === -1.1 ? '平多' : '平空') : (point.type === 1 || point.type === -1.1 ? '买多' : '买空');
-              const actionNature = point.isClose ? '平仓' : '开仓';
-              // 开仓用红色，平仓用绿色
-              const actionColor = point.isClose ? 'green' : 'red';
+              // 根据strategy_type确定操作类型
+              let actionType = '';
+              let strategy_type = '';
+              if (point.strategy_type === 0) {
+                strategy_type = '结束单';
+              } else if (point.strategy_type === -1) {
+                strategy_type = '锁仓';
+              } else if (point.strategy_type === 1) {
+                strategy_type = '开仓';
+              }
+              actionType = point.type === 1 ? '买多' : '买空';
+              
+              // 根据type确定颜色
+              const actionColor = point.type === 1 ? 'red' : 'green';
               tooltipContent += `
                 <span style="color: black;">
-                  类型: ${actionType}<br/>
+                  决策: ${strategy_type}<br/>
                   价格: ${point.value[1]}<br/>
-                  <span style="color: ${actionColor};">操作: ${actionNature}</span><br/>
+                  <span style="color: ${actionColor};">类型: ${point.type === 1 ? '多' : '空'}</span><br/>
                   交易量：${point.count}<br/>
                 </span>
               `;
@@ -216,6 +222,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
           type: 'line',
           data: seriesData,
           smooth: true,
+          showSymbol: false,
           z: 1 // 设置较低的z值，使线条在下层
         };
       }),

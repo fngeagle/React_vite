@@ -6,13 +6,39 @@ interface BarChartProps {
   title?: string;
   xAxis_data: string[];
   series_data: {
-    predictionStrength: number;
-    isCorrect: boolean;
+    prediction_strength: number;
+    prediction_quant_value: number;
   }[];
   onChartReady?: (chartInstance: echarts.ECharts) => void;
 }
 
 const BarChart: React.FC<BarChartProps> = ({ title='预测图', xAxis_data, series_data, onChartReady }) => {
+  // 根据prediction_quant_value计算颜色
+  const getColor = (value: number) => {
+    // 限制范围在-5到5之间
+    const clampedValue = Math.min(Math.max(value, -5), 5);
+    
+    // 计算颜色比例
+    if (clampedValue > 0) {
+      // 正值：从白色到绿色
+      const ratio = clampedValue / 5;
+      const red = Math.floor(255 * (1 - ratio));
+      const green = 255;
+      const blue = Math.floor(255 * (1 - ratio));
+      return `rgb(${red}, ${green}, ${blue})`;
+    } else if (clampedValue < 0) {
+      // 负值：从红色到白色
+      const ratio = Math.abs(clampedValue) / 5;
+      const red = 255;
+      const green = Math.floor(255 * (1 - ratio));
+      const blue = Math.floor(255 * (1 - ratio));
+      return `rgb(${red}, ${green}, ${blue})`;
+    } else {
+      // 0值：白色
+      return 'white';
+    }
+  };
+
   const option = {
     tooltip: {
       trigger: 'axis',
@@ -39,12 +65,11 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图', xAxis_data, seri
               </span>
             `;
           } else {
-            const correctness = item.isCorrect ? '正确' : '错误';
             tooltipContent += `
               <span style="color: black;">
                 时间: ${param.name || 'N/A'}<br/>
                 预测强度: ${param.value}<br/>
-                预测结果: ${correctness}
+                预测值: ${item.prediction_quant_value}
               </span>
             `;
           }
@@ -81,9 +106,11 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图', xAxis_data, seri
         barWidth: '60%',  // 调整柱子宽度
         barGap: '0%',     // 柱子之间的间距
         data: series_data.map(item => ({
-          value: item.predictionStrength,
+          value: item.prediction_strength,
           itemStyle: {
-            color: item.isCorrect ? 'green' : 'red'
+            color: getColor(item.prediction_quant_value),
+            borderColor: '#00000017',
+            borderWidth: 1,
           }
         }))
       }

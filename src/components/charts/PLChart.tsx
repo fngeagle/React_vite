@@ -45,7 +45,8 @@ const PLChart: React.FC<PLChartProps> = ({ title = '盈亏图', xAxis_data, seri
       data: xAxis_data
     },
     yAxis: {
-      type: 'value'
+      type: 'value',
+      scale: 'true'
     },
     dataZoom: [
       {

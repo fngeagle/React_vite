@@ -100,10 +100,10 @@ const WebSocketExample: React.FC = () => {
       request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
       symbols: futureSubscriptions,
-      start_date_show: "2025-09-02 09:33:11",
-      end_date_show: "2025-09-02 11:33:11",
-      start_date_pl: "2025-09-02 09:33:11",
-      end_date_pl: "2025-09-02 11:33:11"
+      start_date_show: "2025-09-03 09:33:11",
+      end_date_show: "2025-09-03 11:33:11",
+      start_date_pl: "2025-09-03 09:33:11",
+      end_date_pl: "2025-09-03 11:33:11"
     };
 
     websocketService.subscribe(request)
