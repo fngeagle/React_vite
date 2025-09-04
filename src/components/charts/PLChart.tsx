@@ -59,7 +59,8 @@ const PLChart: React.FC<PLChartProps> = ({ title = '盈亏图', xAxis_data, seri
       name: item.name,
       type: 'line',
       data: item.data,
-      smooth: true
+      smooth: true,
+      showSymbol: false
     })),
     legend: {
       data: series_data.map((item) => item.name)

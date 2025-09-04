@@ -36,6 +36,7 @@ class WebSocketService {
   private url: string;
   private messageHandlers: Map<string, ((data: any) => void)[]> = new Map();
   private isConnectedFlag: boolean = false;
+  private connectionPromise: Promise<void> | null = null;
 
   constructor() {
     // 生成客户端ID
@@ -51,9 +52,15 @@ class WebSocketService {
 
   // 连接到WebSocket服务器
   connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    // 如果已经有正在进行的连接尝试，返回相同的promise
+    if (this.connectionPromise) {
+      return this.connectionPromise;
+    }
+
+    this.connectionPromise = new Promise((resolve, reject) => {
       // 如果已经连接，则直接返回
       if (this.isConnectedFlag && this.socket?.readyState === WebSocket.OPEN) {
+        this.connectionPromise = null;
         resolve();
         return;
       }
@@ -67,6 +74,7 @@ class WebSocketService {
           console.log('WebSocket连接成功，客户端ID:', this.clientId);
           this.reconnectAttempts = 0;
           this.isConnectedFlag = true;
+          this.connectionPromise = null;
           resolve();
         };
 
@@ -84,6 +92,7 @@ class WebSocketService {
         this.socket.onerror = (error: any) => {
           console.error('WebSocket连接错误:', error);
           this.isConnectedFlag = false;
+          this.connectionPromise = null;
           reject(error);
         };
 
@@ -102,6 +111,8 @@ class WebSocketService {
         reject(error);
       }
     });
+    
+    return this.connectionPromise;
   }
 
   // 处理接收到的消息
@@ -186,12 +197,13 @@ class WebSocketService {
     }
   }
 
-  // 断开连接
+  // 断开连接（仅在应用关闭时调用）
   disconnect() {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
       this.isConnectedFlag = false;
+      this.connectionPromise = null;
       console.log('WebSocket连接已断开');
     }
   }

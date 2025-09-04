@@ -8,6 +8,7 @@ import TimeRangeSelector from '../components/timeRangeSelector/TimeRangeSelector
 import { Dayjs } from 'dayjs';
 import dataProcessingService, { type ChartData } from '../services/dataProcessingService';
 import websocketService from '../services/websocketService';
+import globalStateService from '../services/globalStateService';
 
 interface TimeRange {
   startDate: Dayjs;
@@ -25,80 +26,9 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [timeoutId, setTimeoutId] = useState<number | null>(null);
   
-  // 默认数据（不再使用，仅作参考）
-  const defaultChartData: ChartData = {
-    // 期货时间序列数据示例（包含午间休市时间）
-    xAxis: [
-      '2025-08-29 11:25',
-      '2025-08-29 11:26',
-      '2025-08-29 11:27',
-      '2025-08-29 11:28',
-      '2025-08-29 11:29',
-      '2025-08-29 11:30',
-      // 午间休市时间（11:30-13:00）无数据，但保持等间距显示
-      '2025-08-29 13:00',
-      '2025-08-29 13:01',
-      '2025-08-29 13:02',
-      '2025-08-29 13:03',
-      '2025-08-29 13:04',
-      '2025-08-29 13:05'
-    ],
-    price_series: [
-      {
-        name: '期货价格',
-        data: [
-          { open: 5200, high: 5210, low: 5195, close: 5205, volume: 1000, amt: 5205000, pctChg: 0.1, oi: 5000 },
-          { open: 5210, high: 5220, low: 5205, close: 5215, volume: 1200, amt: 5215000, pctChg: 0.2, oi: 5100 },
-          { open: 5205, high: 5215, low: 5190, close: 5210, volume: 800, amt: 5210000, pctChg: -0.1, oi: 5050 },
-          { open: 5215, high: 5230, low: 5210, close: 5225, volume: 1500, amt: 5225000, pctChg: 0.3, oi: 5200 },
-          { open: 5220, high: 5235, low: 5215, close: 5230, volume: 1100, amt: 5230000, pctChg: 0.2, oi: 5250 },
-          { open: 5225, high: 5240, low: 5220, close: 5235, volume: 900, amt: 5235000, pctChg: 0.1, oi: 5300 },
-          { open: 5230, high: 5245, low: 5225, close: 5240, volume: 1300, amt: 5240000, pctChg: 0.2, oi: 5350 },
-          { open: 5235, high: 5250, low: 5230, close: 5245, volume: 1400, amt: 5245000, pctChg: 0.3, oi: 5400 },
-          { open: 5240, high: 5255, low: 5235, close: 5250, volume: 1600, amt: 5250000, pctChg: 0.2, oi: 5450 },
-          { open: 5245, high: 5260, low: 5240, close: 5255, volume: 1700, amt: 5255000, pctChg: 0.2, oi: 5500 },
-          { open: 5250, high: 5265, low: 5245, close: 5260, volume: 1800, amt: 5260000, pctChg: 0.2, oi: 5550 },
-          { open: 5255, high: 5270, low: 5250, close: 5265, volume: 1900, amt: 5265000, pctChg: 0.2, oi: 5600 }
-        ]
-      }
-    ],
-    // 交易点数据
-    tradePoints: [
-      { id: '1', type: 1 , price: 5200, count:1, timestamp: '2025-08-29 11:25', strategy_type:0},
-      { id: '1', type: -1 , price: 5210, count:1, timestamp: '2025-08-29 11:26', strategy_type:0 },
-      { id: '2', type: 1 , price: 5205, count:1, timestamp: '2025-08-29 11:27', strategy_type:1 },
-      { id: '2', type: -1 , price: 5215, count:1, timestamp: '2025-08-29 11:28', strategy_type:1 }
-    ],
-    pred_series: [
-      { prediction_strength: 2.5, prediction_quant_value: 3.5 },
-      { prediction_strength: 3, prediction_quant_value: 0 },
-      { prediction_strength: 3.8, prediction_quant_value: 4.8 },
-      { prediction_strength: 1.2, prediction_quant_value: -1.2 },
-      { prediction_strength: 2.5, prediction_quant_value: 0.5 },
-      { prediction_strength: 3.7, prediction_quant_value: -3.7 },
-      { prediction_strength: 3.8, prediction_quant_value: 3.5 },
-      { prediction_strength: 0.1, prediction_quant_value: 0 },
-      { prediction_strength: 3.8, prediction_quant_value: 4.8 },
-      { prediction_strength: -1.1, prediction_quant_value: -1.2 },
-      { prediction_strength: 1.5, prediction_quant_value: 0.5 },
-      { prediction_strength: -6.7, prediction_quant_value: -3.7 }
-    ],
-    pl_series: [
-      {
-        name: '盈亏',
-        data: [253, -233, 145, 44, 0, 456, 778, 132, -36, -500, -4, 369]
-      }
-    ]
-  };
   
-  // 图表数据状态 - 初始为空对象，等待WebSocket数据
-  const [chartData, setChartData] = useState<ChartData>({
-    xAxis: [],
-    price_series: [],
-    tradePoints: [],
-    pred_series: [],
-    pl_series: []
-  });
+  // 图表数据状态 - 从全局状态获取初始数据
+  const [chartData, setChartData] = useState<ChartData>(globalStateService.getChartData());
   
 
   // 处理查询按钮点击
@@ -163,19 +93,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // 组件挂载时连接WebSocket并设置数据监听器
+  // 组件挂载时设置数据监听器和全局状态监听器
   useEffect(() => {
-    // 连接WebSocket
-    websocketService.connect()
-      .then(() => {
-        console.log('WebSocket连接成功');
-      })
-      .catch((error) => {
-        console.error('WebSocket连接失败:', error);
-      });
-
     // 设置数据接收回调
-    dataProcessingService.onDataReceived((data) => {
+    const dataReceivedHandler = (data: ChartData) => {
       console.log('接收到WebSocket数据:', data);
       
       // 清除超时
@@ -184,17 +105,26 @@ const Dashboard: React.FC = () => {
         setTimeoutId(null);
       }
       
-      // 更新数据并取消加载状态
+      // 更新数据并取消加载状态，同时保存到全局状态
       setChartData(data);
+      globalStateService.setChartData(data);
       setIsLoading(false);
-    });
+    };
 
-    // 组件卸载时清理
+    // 设置全局状态变化监听器
+    const globalStateHandler = (data: ChartData) => {
+      setChartData(data);
+    };
+
+    dataProcessingService.onDataReceived(dataReceivedHandler);
+    globalStateService.addListener(globalStateHandler);
+
+    // 组件卸载时移除回调
     return () => {
       dataProcessingService.removeDataReceivedCallback();
-      websocketService.disconnect();
+      globalStateService.removeListener(globalStateHandler);
     };
-  }, []);
+  }, [timeoutId]);
 
   
   return (
