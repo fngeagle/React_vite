@@ -69,7 +69,7 @@ const BarChart: React.FC<BarChartProps> = ({ title='预测图', xAxis_data, seri
               <span style="color: black;">
                 时间: ${param.name || 'N/A'}<br/>
                 预测强度: ${param.value}<br/>
-                预测值: ${item.prediction_quant_value}
+                实际价格差值: ${item.prediction_quant_value}
               </span>
             `;
           }

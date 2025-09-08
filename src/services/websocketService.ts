@@ -1,4 +1,5 @@
 import type { FutureItem } from './futuresService';
+import { WEBSOCKET_CONFIG } from './config';
 
 // 定义期货订阅项
 export interface FutureSubscription {
@@ -31,8 +32,8 @@ class WebSocketService {
   private socket: WebSocket | null = null;
   private clientId: string;
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
-  private reconnectDelay: number = 1000;
+  private maxReconnectAttempts: number = WEBSOCKET_CONFIG.MAX_RECONNECT_ATTEMPTS;
+  private reconnectDelay: number = WEBSOCKET_CONFIG.RECONNECT_DELAY;
   private url: string;
   private messageHandlers: Map<string, ((data: any) => void)[]> = new Map();
   private isConnectedFlag: boolean = false;
@@ -42,7 +43,7 @@ class WebSocketService {
     // 生成客户端ID
     this.clientId = this.generateClientId();
     // WebSocket服务器地址
-    this.url = `ws://localhost:8000/ws/${this.clientId}`;
+    this.url = `${WEBSOCKET_CONFIG.BASE_URL}${WEBSOCKET_CONFIG.PATH_PREFIX}/${this.clientId}`;
   }
 
   // 生成客户端ID
@@ -60,7 +61,6 @@ class WebSocketService {
     this.connectionPromise = new Promise((resolve, reject) => {
       // 如果已经连接，则直接返回
       if (this.isConnectedFlag && this.socket?.readyState === WebSocket.OPEN) {
-        this.connectionPromise = null;
         resolve();
         return;
       }
@@ -74,8 +74,11 @@ class WebSocketService {
           console.log('WebSocket连接成功，客户端ID:', this.clientId);
           this.reconnectAttempts = 0;
           this.isConnectedFlag = true;
-          this.connectionPromise = null;
-          resolve();
+          // 使用setTimeout确保readyState已经更新为OPEN
+          setTimeout(() => {
+            this.connectionPromise = null;
+            resolve();
+          }, 0);
         };
 
         // 监听消息事件
@@ -93,6 +96,9 @@ class WebSocketService {
           console.error('WebSocket连接错误:', error);
           this.isConnectedFlag = false;
           this.connectionPromise = null;
+          // 连接错误时重新生成客户端ID和URL，以便下次连接时使用新的ID
+          this.clientId = this.generateClientId();
+          this.url = `${WEBSOCKET_CONFIG.BASE_URL}${WEBSOCKET_CONFIG.PATH_PREFIX}/${this.clientId}`;
           reject(error);
         };
 
@@ -100,14 +106,22 @@ class WebSocketService {
         this.socket.onclose = (event) => {
           console.log('WebSocket连接关闭:', event.reason);
           this.isConnectedFlag = false;
+          this.connectionPromise = null;
           
           // 如果不是主动关闭，尝试重连
           if (!event.wasClean) {
+            // 重连时重新生成客户端ID和URL
+            this.clientId = this.generateClientId();
+            this.url = `${WEBSOCKET_CONFIG.BASE_URL}${WEBSOCKET_CONFIG.PATH_PREFIX}/${this.clientId}`;
             this.handleReconnect();
           }
         };
       } catch (error) {
         console.error('创建WebSocket连接失败:', error);
+        this.connectionPromise = null;
+        // 连接失败时重新生成客户端ID和URL
+        this.clientId = this.generateClientId();
+        this.url = `${WEBSOCKET_CONFIG.BASE_URL}${WEBSOCKET_CONFIG.PATH_PREFIX}/${this.clientId}`;
         reject(error);
       }
     });

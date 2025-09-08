@@ -31,8 +31,18 @@ const Dashboard: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData>(globalStateService.getChartData());
   
 
+  // 检查给定日期范围是否都是周末
+  const isWeekendRange = (start: Dayjs, end: Dayjs): boolean => {
+    // 检查开始日期和结束日期是否都是周末（周六=6, 周日=0）
+    const startDay = start.day();
+    const endDay = end.day();
+    
+    // 如果开始日期和结束日期都是周末，则返回true
+    return (startDay === 0 || startDay === 6) && (endDay === 0 || endDay === 6);
+  };
+  
   // 处理查询按钮点击
-  const handleSearch = (priceRange: TimeRange, plRange: TimeRange, selectedFuture: any) => {
+  const handleSearch = async (priceRange: TimeRange, plRange: TimeRange, selectedFuture: any) => {
     // 清除之前的超时
     if (timeoutId !== null) {
       window.clearTimeout(timeoutId);
@@ -49,12 +59,21 @@ const Dashboard: React.FC = () => {
     }, 30000);
     
     setTimeoutId(newTimeoutId);
+    
     // 格式化时间区间
     const priceStart = priceRange.startDate.hour(priceRange.startTime.hour()).minute(priceRange.startTime.minute());
     const priceEnd = priceRange.endDate.hour(priceRange.endTime.hour()).minute(priceRange.endTime.minute());
     
     const plStart = plRange.startDate.hour(plRange.startTime.hour()).minute(plRange.startTime.minute());
     const plEnd = plRange.endDate.hour(plRange.endTime.hour()).minute(plRange.endTime.minute());
+    
+    // 检查价格时间段和盈亏区间是否都是周末
+    if (isWeekendRange(priceStart, priceEnd) && isWeekendRange(plStart, plEnd)) {
+      console.warn('当前选择的时间区间为周末，不发送数据请求');
+      alert('当前选择的时间区间为周末，无法获取数据');
+      setIsLoading(false);
+      return;
+    }
     
     // 输出到控制台进行测试
     console.log('价格图表时间区间:', {
@@ -69,17 +88,25 @@ const Dashboard: React.FC = () => {
     
     console.log('选中的期货:', selectedFuture);
     
-    // 通过WebSocket请求数据
-    if (selectedFuture && websocketService.isConnected()) {
-      dataProcessingService.requestData(
-        [{ symbol: selectedFuture.symbol, price_per_point: selectedFuture.price_per_point }],
-        priceStart.format('YYYY-MM-DD HH:mm'),
-        priceEnd.format('YYYY-MM-DD HH:mm'),
-        plStart.format('YYYY-MM-DD HH:mm'),
-        plEnd.format('YYYY-MM-DD HH:mm')
-      ).catch((error) => {
-        console.error('数据请求失败:', error);
-      });
+    // 先连接WebSocket，再发送数据请求
+    if (selectedFuture) {
+      try {
+        // 连接WebSocket
+        await websocketService.connect();
+        console.log('WebSocket连接成功');
+        
+        // 连接成功后发送数据请求
+        await dataProcessingService.requestData(
+          [{ symbol: selectedFuture.symbol, price_per_point: selectedFuture.price_per_point }],
+          priceStart.format('YYYY-MM-DD HH:mm'),
+          priceEnd.format('YYYY-MM-DD HH:mm'),
+          plStart.format('YYYY-MM-DD HH:mm'),
+          plEnd.format('YYYY-MM-DD HH:mm')
+        );
+      } catch (error) {
+        console.error('WebSocket连接或数据请求失败:', error);
+        setIsLoading(false);
+      }
     }
   };
 

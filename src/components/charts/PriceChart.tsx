@@ -20,6 +20,7 @@ interface PriceDataItem {
   amt: number;
   pctChg: number;
   oi: number;
+  predicted_price: number;
 }
 
 interface PriceChartProps {
@@ -44,6 +45,19 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
     // 过滤掉count为0的交易点
     const filteredTradePoints = tradePoints.filter(point => point.count !== 0);
     
+    // 检查开仓锁仓对
+    const hasPairedStrategy = (id: string) => {
+      const point = filteredTradePoints.find(p => p.id === id);
+      if (!point) return false;
+      
+      // 查找相同id的其他策略类型点
+      const sameIdPoints = filteredTradePoints.filter(p => p.id === id);
+      const hasOpen = sameIdPoints.some(p => p.strategy_type === 1); // 开仓
+      const hasLock = sameIdPoints.some(p => p.strategy_type === -1); // 锁仓
+      
+      return hasOpen && hasLock;
+    };
+    
     return filteredTradePoints.map(point => {
       // 检查时间戳是否在xAxis_data中
       const xAxisIndex = xAxis_data.indexOf(point.timestamp);
@@ -51,26 +65,36 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
       
       // 根据类型和策略类型确定符号和颜色
       let symbol = 'triangle';
-      let itemStyle = {};
+      let borderColor = '';
+      let fillColor = '';
       let symbolRotate = 0;
       
-      // 如果strategy_type为0，则使用方框
+      // 第三个判断条件：如果strategy_type为0，则显示形状是正方形
       if (point.strategy_type === 0) {
         symbol = 'rect';
-        // 方框的颜色根据type确定
-        itemStyle = { color: point.type === 1 ? 'red' : 'green' };
+        // 正方形的颜色根据类型确定
+        borderColor = point.type === 1 ? 'red' : 'green';
+        fillColor = point.type === 1 ? 'red' : 'green';
       } else {
-        // 根据type确定三角形的方向和颜色
+        // 第一个判断条件：类型（多/空）
         if (point.type === 1) {
-          // 买多：红色上三角
+          // 多：上三角形红色边框
           symbol = 'triangle';
           symbolRotate = 0; // 上三角不需要旋转
-          itemStyle = { color: 'red' };
+          borderColor = 'red';
         } else if (point.type === -1) {
-          // 买空：绿色下三角
+          // 空：下三角形绿色边框
           symbol = 'triangle';
           symbolRotate = 180; // 下三角需要旋转180度
-          itemStyle = { color: 'green' };
+          borderColor = 'green';
+        }
+        
+        // 第二个判断条件：决策（开仓/锁仓）
+        // 如果开仓锁仓存在一对，则中间是白色，否则根据类型确定颜色
+        if (hasPairedStrategy(point.id)) {
+          fillColor = 'white';
+        } else {
+          fillColor = point.type === 1 ? 'red' : 'green';
         }
       }
       
@@ -80,7 +104,11 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
         symbol,
         symbolRotate,
         symbolSize: 10,
-        itemStyle,
+        itemStyle: {
+          color: fillColor,
+          borderColor: borderColor,
+          borderWidth: 2
+        },
         // 为每个数据点存储额外信息，用于tooltip显示
         type: point.type,
         count: point.count,
@@ -129,23 +157,52 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
       formatter: (params: any) => {
         // 处理默认的series tooltip
         let tooltipContent = '';
+        let hasMainData = false;
+        let hasPredictionData = false;
+        let mainData: any = null;
+        let predictionData: any = null;
+        
+        // 首先遍历所有参数，收集数据
         params.forEach((param: any) => {
-          if (param.seriesName !== '交易点') {
-            // 显示时间在最上面，文字颜色为黑色
-            tooltipContent += `
-              <span style="color: black;">
-                时间: ${param.name}<br/>
-                开盘价: ${param.data.open}<br/>
-                收盘价: ${param.data.close}<br/>
-                成交量: ${param.data.volume}<br/>
-                成交额: ${param.data.amt}<br/>
-                涨跌幅: ${param.data.pctChg}%<br/>
-                持仓量: ${param.data.oi}
-              </span>
-            `;
-
-            tooltipContent += '<br/>';
-          } else {
+          if (param.seriesName !== '交易点' && param.seriesName !== '预测价格') {
+            // 主要价格数据（期货价格）
+            if (!hasMainData) {
+              hasMainData = true;
+              mainData = param;
+            }
+          } else if (param.seriesName === '预测价格') {
+            // 预测价格数据
+            if (!hasPredictionData && param.data && param.data.predicted_price !== undefined && param.data.predicted_price !== null && param.data.predicted_price !== 0) {
+              hasPredictionData = true;
+              predictionData = param;
+            }
+          }
+        });
+        
+        // 显示主要数据
+        if (hasMainData && mainData) {
+          tooltipContent += `
+            <span style="color: black;">
+              时间: ${mainData.name}<br/>
+              开盘价: ${mainData.data.open}<br/>
+              收盘价: ${mainData.data.close}<br/>
+              成交量: ${mainData.data.volume}
+          `;
+              // 成交额: ${mainData.data.amt}<br/>
+              // 涨跌幅: ${mainData.data.pctChg}%<br/>
+              // 持仓量: ${mainData.data.oi}
+          
+          // 如果有预测价格数据，添加预测价格信息
+          if (hasPredictionData && predictionData && predictionData.data && predictionData.data.predicted_price !== undefined && predictionData.data.predicted_price !== null) {
+            tooltipContent += `<br/>预测价格: ${predictionData.data.predicted_price}`;
+          }
+          
+          tooltipContent += `</span><br/>`;
+        }
+        
+        // 处理交易点数据
+        params.forEach((param: any) => {
+          if (param.seriesName === '交易点') {
             // 处理交易点的tooltip
             const point = processedTradePoints[param.dataIndex];
             if (point) {
@@ -214,7 +271,8 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
           volume: d.volume,
           amt: d.amt,
           pctChg: d.pctChg,
-          oi: d.oi
+          oi: d.oi,
+          predicted_price: d.predicted_price
         }));
         
         return {
@@ -226,6 +284,25 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
           z: 1 // 设置较低的z值，使线条在下层
         };
       }),
+      // 添加预测价格线
+      {
+        name: '预测价格',
+        type: 'line',
+        data: series_data[0].data.map((d, index) => ({
+          name: xAxis_data[index],
+          value: d.predicted_price === 0 ? null : d.predicted_price, // 将0值转换为null
+          predicted_price: d.predicted_price
+        })),
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          color: '#FF6B6B',
+          width: 2,
+          type: 'dashed'
+        },
+        connectNulls: true, // 连接null值，实现跨越0值点的效果
+        z: 1.5 // 设置z值在价格线和交易点之间
+      },
       {
         name: '交易点',
         type: 'scatter',
@@ -248,7 +325,7 @@ const PriceChart: React.FC<PriceChartProps> = ({ title = '折线图', xAxis_data
       }
     ],
     legend: {
-      data: series_data.map((item) => item.name).concat(['交易点'])
+      data: series_data.map((item) => item.name).concat(['预测价格', '交易点'])
     }
   };
 

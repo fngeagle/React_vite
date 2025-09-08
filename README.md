@@ -1,158 +1,68 @@
-# 期货管理系统 - WebSocket连接说明
+# 期货管理系统
 
-## 概述
+## 项目安装与运行
 
-本项目包含一个WebSocket服务，用于与后端服务器进行实时通信。该服务允许客户端订阅期货数据更新，并接收实时推送的消息。
+### 环境要求
+- Node.js (推荐版本 18.x 或更高)
 
-## 文件结构
+### 安装步骤
 
-- `src/services/websocketService.ts` - WebSocket服务核心实现
-- `src/components/WebSocketExample.tsx` - WebSocket使用示例组件
-- `src/App.tsx` - 路由配置，包含WebSocket示例页面
-- `src/components/Layout.tsx` - 导航布局，包含WebSocket示例链接
+1. **安装依赖**
+   ```bash
+   npm install
+   ```
 
-## WebSocket服务使用方法
+2. **启动开发服务器**
+   ```bash
+   npm run dev
+   ```
 
-### 1. 导入服务
 
-```typescript
-import websocketService from '../services/websocketService';
-```
+### 项目依赖
+主要依赖包括：
+- React 19.1.1
+- React Router DOM 7.8.2
+- Ant Design 5.27.1
+- Axios 1.11.0
+- ECharts 5.6.0
+- ECharts for React 3.0.2
 
-### 2. 连接WebSocket
+开发依赖包括：
+- TypeScript 5.8.3
+- Vite 7.1.2
+- ESLint 9.33.0
+- 相关TypeScript类型定义
 
-```typescript
-// 连接到WebSocket服务器
-await websocketService.connect();
-```
+## 价格图表中的图形说明
 
-### 3. 发送订阅请求
+在PriceChart组件中，不同的图形代表不同的交易信息：
 
-```typescript
-import type { SubscriptionRequest, FutureSubscription } from '../services/websocketService';
+### 三角形符号
+- **上三角形（红色）**：表示买多操作（type=1）
+  - 边框颜色：红色
+  - 填充颜色：红色或白色（如果存在锁仓操作，填充颜色为白色，也就是只有边框的三角形）
+  
+- **下三角形（绿色）**：表示买空操作（type=-1）
+  - 边框颜色：绿色
+  - 填充颜色：绿色（如果存在锁仓操作，填充颜色为白色，也就是只有边框的三角形）
+  - 旋转180度显示
 
-// 将期货数据转换为订阅格式
-const futureSubscriptions: FutureSubscription[] = selectedFutures.map(future => ({
-  symbol: future.symbol,
-  interval: "1m", // 默认间隔为1分钟
-  price_per_point: future.price_per_point, // 每点价格
-  expiry_date: new Date().toISOString().split('T')[0] // 到期日
-}));
+### 正方形符号
+- **正方形（红色/绿色）**：表示结束单操作（strategy_type=0）
+  - 边框颜色：红色（买多）或绿色（买空）
+  - 填充颜色：与边框颜色相同
 
-const request: SubscriptionRequest = {
-  request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 唯一的请求ID
-  timestamp: new Date().toISOString(), // ISO 8601 格式的时间戳
-  symbols: futureSubscriptions, // 选择的期货品种和间隔
-  start_date_show: new Date().toISOString(), // ISO 8601 格式的开始日期
-  end_date_show: new Date().toISOString(), // ISO 8601 格式的结束日期
-  start_date_pl: new Date().toISOString(), // ISO 8601 格式的盈亏开始日期
-  end_date_pl: new Date().toISOString() // ISO 8601 格式的盈亏结束日期
-};
+### 填充颜色含义
+- **实心填充**：单一操作（只有开仓）
+- **白色填充**：配对操作（同时存在开仓和锁仓）
 
-// 发送订阅请求
-await websocketService.subscribe(request);
-```
+### 图形交互
+- 点击交易点可以跳转到配对的交易点
+- 鼠标悬停显示详细信息：决策类型、价格、交易类型（多/空）、交易量
 
-### 4. 监听消息
+## 配置设置位置
 
-```typescript
-// 监听通用消息
-websocketService.on('message', (data) => {
-  console.log('收到消息:', data);
-});
+所有前端请求后端的配置都统一管理在以下文件中：
 
-// 监听订阅确认
-websocketService.on('subscribe', (data) => {
-  console.log('订阅确认:', data);
-});
-
-// 监听错误消息
-websocketService.on('error', (data) => {
-  console.error('错误:', data);
-});
-```
-
-### 5. 发送消息
-
-```typescript
-// 发送自定义消息
-websocketService.send({ type: 'custom', data: 'some data' });
-```
-
-### 6. 断开连接
-
-```typescript
-// 断开WebSocket连接
-websocketService.disconnect();
-```
-
-## WebSocket示例页面
-
-项目中包含一个WebSocket使用示例页面，可以通过以下步骤访问：
-
-1. 启动项目：`npm run dev`
-2. 在浏览器中打开：`http://localhost:5173/WebSocketExample`
-3. 点击"连接WebSocket"按钮建立连接
-4. 选择期货品种并点击"订阅选中的期货"按钮发送订阅请求
-5. 查看接收到的WebSocket消息
-
-## API端点
-
-WebSocket服务器端点：`ws://localhost:8000/ws/{client_id}`
-
-其中`{client_id}`是客户端唯一标识符，由WebSocket服务自动生成。
-
-## 消息格式
-
-### 客户端发送的订阅请求
-
-```json
-{
-  "request_id": "req_1632567890123_abc123",
-  "timestamp": "2025-09-02T06:30:00.000Z",
-  "symbols": [
-    {
-      "symbol": "RB2501",
-      "interval": "1m",
-      "price_per_point": 10,
-      "expiry_date": "2025-09-01"
-    },
-    {
-      "symbol": "HC2501",
-      "interval": "1m",
-      "price_per_point": 5,
-      "expiry_date": "2025-09-01"
-    }
-  ],
-  "start_date_show": "2025-09-01T00:00:00.000Z",
-  "end_date_show": "2025-09-02T00:00:00.000Z",
-  "start_date_pl": "2025-09-01T00:00:00.000Z",
-  "end_date_pl": "2025-09-02T00:00:00.000Z"
-}
-```
-
-### 服务器响应消息
-
-成功订阅响应：
-```json
-{
-  "status": "success",
-  "message": "订阅已成功更新，共 1 个品种。",
-  "subscribed_symbols": ["RB2501"]
-}
-```
-
-错误响应：
-```json
-{
-  "error": "无效的消息格式",
-  "details": []
-}
-```
-
-## 注意事项
-
-1. 确保后端WebSocket服务器正在运行
-2. 检查防火墙设置，确保WebSocket端口（默认8000）未被阻止
-3. 在生产环境中，需要修改WebSocket服务器地址
-4. WebSocket服务具有自动重连功能，最多尝试5次重连
+### 配置文件路径
+`src/services/config.ts`

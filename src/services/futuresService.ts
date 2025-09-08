@@ -1,4 +1,5 @@
 import api from './api';
+import { API_ENDPOINTS } from './config';
 
 // 定义期货数据类型
 export interface FutureItem {
@@ -10,7 +11,7 @@ export interface FutureItem {
 // 获取所有期货数据
 export const getAllFutures = async (): Promise<FutureItem[]> => {
   try {
-    const response = await api.get('/futures');
+    const response = await api.get(API_ENDPOINTS.FUTURES.GET_ALL);
     console.log(response.data)
     return response.data;
   } catch (error) {
@@ -22,7 +23,7 @@ export const getAllFutures = async (): Promise<FutureItem[]> => {
 // 根据ID获取期货数据
 export const getFutureById = async (id: string): Promise<FutureItem> => {
   try {
-    const response = await api.get(`/futures/${id}`);
+    const response = await api.get(API_ENDPOINTS.FUTURES.GET_BY_ID(id));
     return response.data;
   } catch (error) {
     console.error(`Error fetching future with id ${id}:`, error);
@@ -33,7 +34,7 @@ export const getFutureById = async (id: string): Promise<FutureItem> => {
 // 创建新的期货数据
 export const createFuture = async (future: Omit<FutureItem, 'id'>): Promise<FutureItem> => {
   try {
-    const response = await api.post('/futures', future);
+    const response = await api.post(API_ENDPOINTS.FUTURES.CREATE, future);
     return response.data;
   } catch (error) {
     console.error('Error creating future:', error);
@@ -44,7 +45,7 @@ export const createFuture = async (future: Omit<FutureItem, 'id'>): Promise<Futu
 // 更新期货数据
 export const updateFuture = async (id: string, future: Partial<FutureItem>): Promise<FutureItem> => {
   try {
-    const response = await api.put(`/futures/${id}`, future);
+    const response = await api.put(API_ENDPOINTS.FUTURES.UPDATE(id), future);
     return response.data;
   } catch (error) {
     console.error(`Error updating future with id ${id}:`, error);
@@ -55,7 +56,7 @@ export const updateFuture = async (id: string, future: Partial<FutureItem>): Pro
 // 删除期货数据
 export const deleteFuture = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/futures/${id}`);
+    await api.delete(API_ENDPOINTS.FUTURES.DELETE(id));
   } catch (error) {
     console.error(`Error deleting future with id ${id}:`, error);
     throw error;
@@ -65,7 +66,7 @@ export const deleteFuture = async (id: string): Promise<void> => {
 // 批量删除期货数据
 export const deleteFuturesBatch = async (ids: string[]): Promise<void> => {
   try {
-    await api.post('/futures/batch-delete', { ids });
+    await api.post(API_ENDPOINTS.FUTURES.BATCH_DELETE, { ids });
   } catch (error) {
     console.error('Error batch deleting futures:', error);
     throw error;
@@ -75,7 +76,7 @@ export const deleteFuturesBatch = async (ids: string[]): Promise<void> => {
 // 搜索期货数据
 export const searchFutures = async (keyword: string): Promise<FutureItem[]> => {
   try {
-    const response = await api.get(`/futures/search?keyword=${keyword}`);
+    const response = await api.get(API_ENDPOINTS.FUTURES.SEARCH(keyword));
     return response.data;
   } catch (error) {
     console.error(`Error searching futures with keyword ${keyword}:`, error);

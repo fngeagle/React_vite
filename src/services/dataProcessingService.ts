@@ -15,6 +15,7 @@ export interface ChartData {
       amt: number;
       pctChg: number;
       oi: number;
+      predicted_price: number;
     }[];
   }[];
   tradePoints: {
@@ -130,7 +131,8 @@ class DataProcessingService {
       volume: item.Volume || 0,
       amt: item.Amt || 0,
       pctChg: item.PctChg || 0,
-      oi: item.Oi || 0
+      oi: item.Oi || 0,
+      predicted_price: item.predicted_price || 0
     }));
 
     // 处理x轴数据（时间戳转换为日期字符串）
@@ -143,14 +145,14 @@ class DataProcessingService {
     });
 
     // 处理交易点数据
-    const tradePoints = data
+    const rawTradePoints = data
       .filter(item => item.deal_type !== undefined && item.deal_type !== 0)
       .map(item => {
         let type = 0;
         if (item.deal_type === 'BUY') {
-          type = -1;
-        } else if (item.deal_type === 'SELL') {
           type = 1;
+        } else if (item.deal_type === 'SELL') {
+          type = -1;
         } else if (typeof item.deal_type === 'number') {
           type = item.deal_type;
         }
@@ -164,6 +166,25 @@ class DataProcessingService {
           strategy_type:item.strategy_type
         };
       });
+
+    // 合并相同时间点的交易点
+    const tradePointsMap = new Map<string, any>();
+    rawTradePoints.forEach(point => {
+      const key = `${point.timestamp}-${point.type}-${point.strategy_type}`;
+      if (tradePointsMap.has(key)) {
+        // 如果已存在相同时间点、类型和策略类型的交易点，则累加交易量
+        const existingPoint = tradePointsMap.get(key);
+        existingPoint.count += point.count;
+        // 价格取平均值
+        existingPoint.price = (existingPoint.price + point.price) / 2;
+      } else {
+        // 否则直接添加
+        tradePointsMap.set(key, { ...point });
+      }
+    });
+    
+    // 将Map转换为数组
+    const tradePoints = Array.from(tradePointsMap.values());
 
     // 处理预测数据
     const pred_series = data.map((item, index) => {
@@ -191,6 +212,9 @@ class DataProcessingService {
           // 如果后续没有预测点了，则使用最新close - 当前预测点的close
           prediction_quant_value = (priceData[priceData.length - 1]?.close || 0) - (item.Close || 0);
         }
+        
+        // 对prediction_quant_value进行四舍五入，只保留一位小数
+        prediction_quant_value = Math.round(prediction_quant_value * 10) / 10;
       }
       
       return {
